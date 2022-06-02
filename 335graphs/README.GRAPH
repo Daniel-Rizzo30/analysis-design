@@ -1,0 +1,161 @@
+Daniel Rizzo
+CSCI 335
+Homework 6
+Professor Sven Dietrich
+May 11th, 2021
+README.GRAPH
+Description of work done for Homework 6
+
+References: 
+
+Weiss, M. A. (2014). Data Structures and Algorithm Analysis in C++, 
+International Edition (Fourth ed.). Harlow, United Kingdom: Pearson Education Limited 
+- For reviewing all content on Graphs and Heaps, and for referencing any starter code, along with
+all source pseudo-code for Dijkstra's Algorithm.
+
+Galles, David (2011). Data Structure Visualizations. Computer Science, 
+University of San Francisco. https://www.cs.usfca.edu/~galles/visualization/Algorithms.html
+- For viewing graph algorithm visualizations and for understanding how an Adjacency List should work.
+
+https://www.cplusplus.com/reference/string/stod/ 
+- For understanding how to convert a string into a double properly
+
+http://www.cplusplus.com/reference/list/list/ 
+- For understanding the limitations of the std::list
+
+https://stackoverflow.com/questions/37243115/display-number-with-decimal-places-instead-of-whole-number 
+- For reviewing how to set decimal point precision for displaying whole numbers with ".0" at the end
+
+*****COMPILER WARNING*****
+The Compiler warned me about conversion from a size_t into an int within the binary_heap.h file when constructing a 
+priority queue from a vector. This needs to be fixed within the binary_heap.h file, which I did, but I know that is not a 
+file that is to be uploaded with the project, so I am putting this here to say that this is something that should be dealt 
+with (easily) within binary_heap.h (and something that no one should be getting points off for, for that matter).
+
+**************Question 1**************
+
+***Graph.h***
+
+I figured that the graph class should keep track of how many vertices and edges it contains, so I made the members 
+vertices_ and edges_. I also knew I would need some kind of simulation for infinity, so I made the infinity_ member, which 
+is set to the highest value an int / double can be without overflowing - which models infinity. 
+
+The graph class also has two simple function isEmpty(), which returns true if there are 0 vertices, and size(), which 
+returns the number of vertices in the graph. 
+
+EDGE STRUCT: 
+I first thought about how an instantiation of an edge would be stored, and so I made the struct Edge. I was sure how to 
+use what would be a class for Vertex at this point, so I thought that the main Adjacency_List_ would be a vector<*Edge>, 
+where each index in the vector stood for a vertex, but there was no actual Vertex class. This is why I wrote toVector() 
+and the operator< overload, thinking I would need them for using the binary_heap.h. toVector() just copies the elements of 
+a list of edges into a vector, and operator< returns true iff the first edge's cost_ is less than the second edge's cost_.
+The constructors of the Edge class are simple, as it uses the default keyword, and the parameterized constructor uses the 
+initialization list.
+
+VERTEX STRUCT: 
+After a day of thinking and reading the textbook and the slides multiple times, I wrote the Vertex struct. It contains its 
+own index within the Adjacency_List_, it's own adjacency_ list of outgoing edges, and the three data members needed for 
+Dijkstra's algorithm - cost, known, and previous_in_path. After I changed the Adjacency_List_ to be a vector<Vertex>, I 
+knew that I would need an operator< overload for this struct as well, so I made it so that it returns true if the first 
+vertex's cost_ is less than the second's. 
+
+CONSTRUCTOR: 
+Graph uses a simple constructor with an optional parameter for the size - which is the number of vertices in the graph. 
+It sets vertices_ to this size, and updates each vertex's index based on where it is in the Adjacency_List_, starting from 
+1.
+
+RESIZE(): 
+This function was put in if the graph ever needed to add any vertices, based on how Graph text files were given in the 
+HW6 pdf this wasn't likely to happen, but I thought an option for this to happen would be a good idea. The function only 
+allows for expansion of the graph's number of vertices, as deleting vertices is a bad idea. 
+
+INSERTEDGE():
+This function creates an edge object based on in_vertex and the cost provided by the parameters, and inserts it into 
+the vertex represented by Adjacency_List_[out_vertex - 1], effectively updating the list of vertices that out_vertex is 
+connected to. If out_vertex is too big - out of range of Adjacency_List_.size() - 1, then the vector resizes itself. 
+
+ADJACENT():
+The function sets the double to be returned, adjacent, to -1.0, a sentinal value to say that there is no connection between
+the two parameters out_vertex and in_vertex. If these two parameters are the same, then the function will return 0, as the 
+cost from a vertex to itself is always 0 here. The function then checks the adjacency_ list of the vertex represented by 
+out_vertex, which is in Adjacency_List_[out_vertex - 1]. If there contains an edge in this vertex's adjacency_ that matches 
+in_vertex, these two vertices are connected, so the double adjacent is updated to the cost of the path from out_vertex to 
+in_vertex. In this case it can now break since it has found what it is looking for. Then it returns adjacent, which is 
+either -1.0, or the cost of the edge from out_vertex to in_vertex, which is ALWAYS POSITIVE as stated in the HW6 pdf.
+
+***CreateGraphAndTest.cc***
+
+GETNEXTNUMBER():
+The function is used to obtain the next number in the line from the Graph text file. Therefore it checks if there are any 
+decimal digit numbers in the line, full_line, left, and if there aren't, it returns false, meaning that no new number 
+was found and it did not update new_number as expected. Otherwise it goes on to find the first instance of a number, and 
+cuts any other unwanted characters that may be in front of that first instance of a number using the substr function. Then 
+it finds the next character that is not a number, which is usually a space, which now must be after the number, not before 
+since it just cut out any unwanted characters in the front of the full_line. It then sets new_number = a substring that 
+only contains the next number. Then it cuts this new number out of the full_line parameter so that the next call to 
+GetNextNumber() does not see that number. Then it returns true. 
+
+CREATING THE GRAPH:
+Within testGraphDriver(), the query and graph file names are copied from the command line arguments, and an fstream is 
+opened to read the graph file. The first line is copied using getline(), and GetNextNumber() is called to make sure the 
+parameter that is about to be made only contains a number in it. This number is then made into an integer, and a graph, 
+G, is instantiated with it using the constructor. 
+Within a while loop, which gets new lines from the graph file, the first number within the line is created and made into 
+out_vertex, and then the function enters the inner while loop, which gets the parameters for creating edges that are 
+coming out of this out_vertex. For each in_vertex and cost it then calls insertEdge() within G. It does this until it runs 
+out of numbers and / or lines to take from the graph file. The graph's adjacency list is now fully created.
+
+QUERYING THE GRAPH:
+Within testGraphDriver(), an fstream is made to read from the query file, and while loop is entered that gets a new line 
+from this query file. The function then calls GetNextNumber twice, once for an out_vertex, and once for an in_vertex, 
+which are to be used as parameters for the call to G.adjacent(), which returns the cost of the edge between the vertex's 
+represented by the integers out_vertex and in_vertex. The cost is saved in the variable cost, and if cost == -1.0, then it 
+is a sentinal value within adjacent() that means that these two vertices are NOT connected. If this is true the function 
+prints not_connected, as specified in the HW6 pdf. Otherwise, the two vertices must be connected, so it prints connected, 
+along with the cost of the edge. It prints the cost with one decimal to the right always, as specified in the HW6 pdf. 
+
+**************Question 2**************
+
+***Graph.h***
+
+PRINTPATHANDCOST():
+This function sets up the display for printing the path and cost as well, so it is implicit that it cannot call itself 
+recursively, as the set up for all the recursive calls would be output as well, meaning that printPath() is needed. The 
+function starts the set up by printing the name / index of the vertex, as specified in the HW6 pdf, and then checks if 
+the vertex's path is infinity_, if it is, then the path from the start vertex to this vertex is not possible after 
+Dijkstra's algorithm finished. It must print not_possible, and it also returns false. If the previous_in_path_ of this 
+vertex is not itself, it calls printPath() for its previous_in_path_ data member, and puts a space between numbers. 
+Finally it prints itself, as the vertex itself is always the last in its own path. It returns true in this case.
+
+PRINTPATH():
+This function does the same as printPathandCost(), but does not have any of the formal set up, and doesn't output the 
+vertex's cost. It calls itself recursively if the vertex parameter has a path that is not itself, and at the end output 
+the vertex parameter. If the path is infinite to get the the vertex parameter, which should not happen while this 
+function is called, then not_possible will be printed.
+
+DIJKSTRA():
+This function implements Dijkstra's shortest path algorithm using a priority queue / min heap. It first creates a pointer 
+to the start vertex found in Adjacency_List_[start_vertex - 1], then resets all the vertex's data members that are in 
+Adjacency_List_. It then sets the start vertex's data members to true and 0. 
+Then it creates the priority queue and inserts this start_vertex pointer. It enters a while loop that only exits if the 
+heap is empty, and dequeues the min value from this priority queue and sets the pointer V equal to this. V is now the 
+vertex with the shortest path / cost that was in the queue. A for loop is entered that iterates through each outgoing 
+edge that V contains within its list adjacency_. For all of these edges, it checks if the cost of V's path plus this 
+edge's path is less than the cost of the vertex that this edge is going into, which is stored in W. If so, W's cost is 
+changed to this shorter / less costly distance, and W is inserted into the priority queue. W's previous_in_path_ is 
+changed to be V, as W's new path uses V in this if statement. 
+
+***FindPaths.cc***
+
+GetNextNumber() is just copied from CreateGraphAndTest.cc, so it has the exact functionality as this. I'll add in here 
+that GetNextNumber() is derived from GetNextWord() from a previous homework in this class, CSCI 33500.
+
+CREATING THE GRAPH:
+Within findPathDriver(), the same instructions are laid out as in CreateGraphAndTest.cc's "CREATING THE GRAPH" section. 
+findPathDriver() just needs to also take the start vertex from the command line argument, instead of taking the query 
+file's name. stoi() is used for this, as it has been used throughout all of this project, along with stod().
+
+TESTING DIJKSTRA'S ALGORITHM:
+This section simply calls G.Dijkstra(), running the algorithm once using the command line argument's start vertex, then 
+calls G.printPathandCost() for each vertex in G. Doing this will cout everything that Question 2 needs as output, as 
+specified in the HW6 pdf.

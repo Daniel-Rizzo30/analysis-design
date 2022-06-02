@@ -1,0 +1,238 @@
+Daniel Rizzo
+CSCI 335
+Homework 3
+Professor Sven Dietrich
+March 12th, 2021
+README.AVL - Description of work done for Homework 3.
+
+Sources Used For Homework: 
+
+https://www.cplusplus.com/reference/vector/vector/ : 
+For brushing up on all operations that a standard vector can do in C++. 
+
+Weiss, M. A. (2014). Data Structures and Algorithm Analysis in C++, 
+International Edition (Fourth ed.). Harlow, United Kingdom: Pearson Education Limited :
+For reviewing how exactly the default keyword works, and for AVL Trees.
+
+https://www.tutorialspoint.com/read-file-line-by-line-using-cplusplus :
+For reviewing fstream in C. 
+
+http://www.cplusplus.com/reference/string/string/ :
+For reviewing all operations that can be done on strings.
+
+http://www.cplusplus.com/reference/cmath/ : 
+For reviewing what functions the cmath library contains.
+
+
+*****PART 1*****
+
+I first started by completing the Big-5 and the two constructors for the SequenceMap class. The homework 3 pdf 
+said that it's okay to use "default" for the Big-5, and this checked out with what the textbook said. For the zero 
+parameter constructor I also used "default". For the parameterized constructor, I used the initializer list on the 
+string data member. Within the implementation, I used the push_back function found in the vector library to add the
+enzyme acronym.
+
+OPERATOR< 
+
+This function was easy to understand and code, as it just requires returning the value of the two data members 
+we wish to compare, which are the respective recognition_sequence_'s from each SequenceMap. 
+
+OPERATOR<< 
+
+I decided to format this in the style of the rebase210.txt file, as that seemed like the best and most official way
+to format. All the enzyme acronym names are printed out element by element from the vector, separated by /, then
+the operator finishes with printing out the recognition sequence, ended by //. 
+
+Upon getting into Part 2.1, I changed this to mimick the output needed for finding enzyme acronyms, as this seems to be
+the intended use for the homework. This wasn't clear until now.
+
+MERGE
+
+The function first checks if the caller and the parameter's recognition sequence are equivilant, as alluded to in the 
+homework 3 pdf, then appends the caller's enzyme acronym vector to include all of the parameter's enzyme acronyms.
+
+
+*****PART 2.1*****
+
+I'm solidly confused on how I should be adding functions/adjustments for a specific Object type inside of a templated
+class. This is not at all anything I've learned about templates. I'm now more confused because the hand in description
+specifies that AVLTree.h is to be handed in, meaning that a derived class isn't to be used to make a 
+separate header file. 
+
+The only loop hole through tbis would be to add a derived class within AVL_Tree.h that
+specifically holds SequenceMap, and then override/use virtual functions to modify insert, and also add a function to
+search by recognition_sequence_. But then the name of this derived class would need to be used instead of 
+AvlTree<SequenceMap>. This does not make sense to me.
+
+Maybe I could use the virtual keyword on the insert function, and then add a second implementation on the outside of the 
+class that would be able to override the regular insert function when SequenceMap is in use?
+
+Using a derived class definitely does not work, I tested which implementation would be used in a AvlTree<SequenceMap>, 
+and it used the base class implementation. 
+
+Using virtual and a specification, like AvlTree<SequenceMap>, in the function declaration does not work either. 
+
+I went to Blake's TA hours on March 2nd and inquired. He said that using "t->element.Merge(M1);" should work, as it did
+compile. My thought process' problem was that I did not know that the compiler would accept .Merge() as a function under 
+the template of Comparable. The template/compiler will only cause an error code for using .Merge() as a member function in 
+element if there is an instantiation where this causes a problem. So then, it basically assumes that all Comparables used
+in all instantiations will have some form of Merge as used in the code. That would be my best guess.I hope this 
+does not cause anymore problems for me. This kind of manipulation, whether intended or not, on templates 
+is also used in the Query Tree function for a_tree.
+
+For query tree I had trouble finding out how to skip over the heading of the file, but I decided that a line should be
+skipped over if it contains a space. 
+
+QUERYTREE()
+
+I started by looking at the pseudocode given, and seeing what I could deduce from it. I made all the obvious connections,
+and then I realized I would need to be using fstream to open and read the input file. I kept both while loops, but I did
+shift back and forth between what should be inside the inner loop. I also believe the SequenceMap used in the insert
+has to be a const variable, so I changed that. I also realized I should probably make a helper function to separate
+each line from the file, so GetNewWord() was written. 
+
+After the tree is made, the rest is simple, just take inputs and assign them to strings, and call the function to get
+the acronym vector in the tree for each. 
+
+GETNEWWORD()
+
+The idea is simple, the function checks for where the next / is in the first parameter, and sticks all the characters
+before that in the second parameter. It also removes this 'word' from the first parameter/line. It returns true upon 
+success so that the while loop may continue, and returns false if the first paramter/line is only small enough to contain 
+slashes.
+
+INSERT()
+
+I only started work on the avl tree function after I understood how I would be modifying them - ie after I went to
+Blake's office hours and fixed some "const" issues for sequence map.
+
+At first, I only added the first inner if statement, so that upon == recognition_sequence_'s, the merge function would 
+crack, along with return;, as balancing isn't needed. I then added the outer if statement to check if the node wasn't 
+a nullptr, this solved a segmentation fault error. I also realized that after the function checks for this, it is 
+essentially only going to be doing what it was before I changed it, that's why there are two separate if run ons instead
+of one including all four statements. 
+
+PRINTING ENZYME ACRONYMS
+
+I looked at the printTree function for help, as it pretty much just traverses the tree, but also does one "action" for
+each node. I made the wrapper function have a string parameter as the recognition_sequence, as that made the most sense,
+this is kind of like a find function. The recursive function has three parameters - the recognition_sequence, a boolean
+to see if it has been found yet, and the node pointer that the function is currently at. 
+
+Once inside the recursive function, it looks for the recognition_sequence_ equivilance, and will output the enzyme
+acronym vector if so, and set found to true. If this boolean is false when the recursive function returns back to the
+wrapper, it will print Not Found, as specified in the Homework 3 PDF. It took me a few tries to understand how to 
+keep track of how to know if anything was printed out in the recursive function, but now it seems to work well.
+
+This section changed how I think about templates, I did not know anything about how the compiler works when we assume 
+that a template is a specific kind of class that has specific functions. I was never taught this, I'm glad Blake 
+explained this to me, and also gave me an example of a different language that actually accounts for this - rust. 
+
+*****PART 2.2*****
+
+I attempted 2. - 5. before going to Blake's office hours on March 10th. In the short time we spoke he gave me a few 
+helpful tips. I did not understand the relationship between height and depth of a tree, or rather I didn't understand 
+the lack of relationship, so Blake told me to look into that. This helped me solve the insanely high numbers I was 
+obtaining for 3.). I stayed in the office hours room working, and also fixed my 4.) code. I needed to add a couple if 
+statements to reduce the amount of recursive calls. 
+
+
+***2.) Print Number of Nodes***
+
+TestTree only calls AvlTree's NumberofNodes function for this section. 
+
+Within AVLTree, NumberofNodes() is at first a wrapper function for the recursive version of itself. It sets up the variable 
+that counts nodes, and makes sure that the tree isn't empty. It then passes N to the recursive function, which starts 
+at the root and returns N after the recursive function returns. 
+
+The recursive function checks if the node it's currently at isn't null, then adds one to the count and calls itself 
+twice, one for each possible child of the current node. Since the count is passed by reference, it updates properly and
+returns 565 as it should. 
+
+***3.) Print Average Depth / Ratio of Average Depth***
+
+Again, TestTree only prints out results from AvlTree's functions. 
+
+AverageDepth() is a wrapper function, it returns a sentinal value of -1 if the tree is empty, otherwise it creates a float
+that will be updated through the recursive function, and calls the recursive function, and returns the TotalDepths
+divided by the current number of nodes. It also calls fixDepths to set up the depth of each node
+
+**The recursive function gets the depth of the current non-null node by getting the height of the root and subtracting 
+the height of the current node. Then it calls itself for each child. Again, the total is passed by reference so it 
+updates properly. **
+
+Update: The recursive function was reworked, and now relies on the fixDepth function to set the depths of all nodes. 
+Instead of implementing this function within the recursive Average Depth function, I figured it should be outside of 
+the function, that way any time depths are dealt with, this fixDepths function can be called to clean up any messes caused
+by rebalancing.
+
+Ratio() is not a function that needed to be implemented within the tree, as it only calls other functions that were 
+already implemented, but I think it belongs in the tree header file because it adds to the functionality of the AvlTree. 
+Ratio() just calls AverageDepth() and NumberofNodes(), then computes the ratio equation, which is Average / log2(n). 
+
+***4.) Find() and Recursive Stats***
+
+This part of TestTree opens up an fstream, and creates size_t's successes and failures for keeping track of its stats. 
+The while loop obtains one line at a time, then checks the outcome of the find() function so it can properly 
+update the statistics. Average is calculated, and the two numbers are output. It closes the fstream for later use. 
+
+Find() function takes a string to find. If the tree is not empty, it creates a bool to pass along with the other 
+parameters to the inner function, and returns that boolean.
+
+The Find() recursive function updates the remove recursive calls if the current node isn't null, then checks if the current
+node contains the recognition_sequence that is needed. If this happens it can update the boolean to true, and return, as it 
+now knows that the recognition_sequence exists in the tree. Otherwise it goes through two if statements to check which 
+side of the tree/subtree it should trickle down to check. Including these if statements reducing the recursive calls 
+down exponentially. 
+For many hours I didn't understand how I could include the recursive_calls as data members for 4.) and 5.) separately, 
+until I realized I could have separate data members for each function. 
+
+I also made two functions for each of the _recursive_calls_ members so that TestTree can manipulate them when needed, and
+only when needed. 
+
+***5.) Attempt Removes and Recursive Stats***
+
+TestTree does almost the same thing that was done in 4.), it reuses many of the variables, just to reduce overhead. 
+Within each while loop, a SequenceMap is created from the grabbed recognition_sequence, and it is then passed to 
+RemoveSequence() to take care of some extra considerations that the regular remove() wrapper does not. It calculates the 
+stats and prints them, then closes the fstream. 
+
+RemoveSequence() takes care of extra considerations that the regular remove() does not. If the tree is not empty, it 
+checks if the recognition_sequence exists in the tree in the first place, and if it does not exist, the remove is 
+considered unsuccessful. Otherwise it passes the parameter onto remove's inner function, and return's the complement of 
+find(x) - meaning that the remove is successful if x is not found in the tree anymore. 
+
+This approach only requires the inner remove() function to have one line of code added - add 1 to remove_recursive_calls_. 
+This remove_recursive_calls_ data member is very useful, as it provides ease to keeping track of how many calls there 
+have been for this function. Again, two functions for manipulating this data member are coded. 
+
+5.) is still outputting the wrong numbers for me, and I'm not quite sure how to fix it. I'm getting 5a: 156, 5b: 6.6381 
+as of now. This is only a difference of 5 for 5a. This means that 6.) is in range, but is not the exact output.
+
+I tried switching the order of which line to take in to remove eg. Instead of skip line, remove line; I'm now doing 
+remove line, skip line. This solved 5a's problem, I wish this would have been stated way more clearly in the 
+instructions! 5b is still incorrect. 5b is the only part of this project I believe I have incorrect, I'm not sure what 
+else to test to see what's wrong. 
+
+***6.) Steps 2 and 3 again***
+
+Since I implemented the functionality of these three as tree functions, I just need to call them again in the TestTree. 
+5.) is wrong, so this means that 6.) is may have been effected, but it is still within the tolerated levels. I'm not 
+sure where I'm going wrong. 
+
+
+*****PART 2.3*****
+
+I copied all of my work into the new files, and changed any wording as needed. The new AVL Tree class is called AvlTreeMod 
+just to distinguish properly between the two. All uses of AvlTree were changed into AvlTreeMod. 
+
+For both of the double rotation functions, I started by pasting in the two single rotation functions called, then tracing 
+what happens with a diagram. I also used the powerpoint slides' pictures to help me understand how exactly the three nodes 
+involved shift. I rewrote the double rotations one at a time, basically breaking it down into four steps for switching 
+around left and right children. 
+After this, heights need to be reworked, and the bottom nodes need to rework their heights first. This way, when k2's 
+height is being fixed, it takes the max of the already updated heights of its new children, who have changed their 
+heights based on their new children (whose heights have stayed constant). 
+Lastly, I saw that the single rotations also make the old subroot equal to the new subroot, so this was put in as well. 
+This should make it so that when the parent of the old subroot tries to get a pointer to the old subroot, which used to 
+be its child, it gets the new subroot instead, which is its new child. 

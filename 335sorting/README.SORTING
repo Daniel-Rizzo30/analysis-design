@@ -1,0 +1,178 @@
+Daniel Rizzo
+CSCI 335
+Homework 5
+Professor Sven Dietrich
+April 27th, 2021
+README.SORTING
+Description of work done for Homework 5
+
+References: 
+
+Weiss, M. A. (2014). Data Structures and Algorithm Analysis in C++, 
+International Edition (Fourth ed.). Harlow, United Kingdom: Pearson Education Limited 
+- For reviewing all content on sorting, and referencing all sorting code.
+
+https://www.cplusplus.com/reference/cstdlib/rand/
+- For reviewing the rand() function in C++.
+
+http://www.cplusplus.com/reference/functional/greater/
+- For reviewing what exactly the greater / less classes do
+
+Professor Gennadiy Maryash, Hunter CSCI 23500 Project 5 starter code
+- For help with reworking my QuickSort 2 and 3 code, I used this algorithm idea instead.
+
+****** Step 1 ******
+
+VERIFYORDER():
+This function goes through every adjacent pair in the passed by reference vector. It sets the returned boolean to 
+true, and it is switched to false upon the for loop finding that an adjacent pair does not match the correct 
+order. Once it finds that some part of it is not in order, it can break the for loop, as order has already been 
+proven false, and then it returns the boolean "order."
+
+GENERATERANDOMVECTOR(): 
+This function creates a new vector of integers called RV. It then calls push_back() within a for loop to add 
+random values within the wanted size of the vector, then returns the vector. The random values can be from 
+0 - RAND_MAX. 
+
+GENERATESORTEDVECTOR():
+I have two implementations of this function within the file, and I'm still not sure which to use. The 
+implementation with less lines of code simply checks if the call is for a vector that is increasing in value or 
+decreasing. If it's increasing, the for loop provided goes from 1 to size to pushback() values into the vector. 
+If it's decreasing it goes from size to 1 to pushback() values into the vector. It then returns the vector. 
+
+The other implementation creates a sorted vector of random values, either increasing or decreasing. In order 
+to do this, it creates "sections" that hard block any one incrementation/decrementation from being too large. 
+This makes it so that the max change in value from one value to the next is RAND_MAX % size of the vector. 
+Then it goes into one of two for loops which first sets the beginning element of the vector, making sure the 
+beginning element is small enough (for increasing) or large enough (for decreasing) to allow for many elements 
+in the vector. On all other for loops besides the first, it takes the previous element in the vector and adds 
+or subtracts a random number (within the allowed section) from this prevous element to get the next element. It 
+would then return the vector as well. 
+
+COMPUTEDURATION(): 
+Based on the implementation of TestingTiming(), I could deduce what all the chrono library tokens were able to 
+do. Calling the function now() returns the current time in some convenient form. The count() function simply 
+computes the time in its parameters, such as with begin - end, and returns it based on the chrono type put in 
+the template, such as ms or ns. Based on this, it was easy to see that this function could be written with one 
+line of code, which just calls this count() function with the two chrono time point parameters it was given.
+
+****** Step 2 ******
+
+Heapsort, Quicksort, and Mergesort were all given an extra template named Comparator, and all funtions they all 
+call that use comparisons were also given this Comparator template, along with an extra parameter that uses this 
+template. heapsort(), percDown(), mergeSort(), merge(), quicksort(), insertionSort(), and 
+median3() were given this Comparator and a Comparator parameter.
+
+Also I'm not sure how else I was supposed to fix this, but I rearranged the order in which the functions are 
+written within the file to avoid the problem of calling to functions that are only declared later in Sort.h.
+
+HEAPSORT: 
+The heapsort function itself simply iterates through its latter half, not making any comparisons. It only needs 
+the Comparator in order to pass it on to percDown(). percDown() then uses the Comparator so it can properly 
+decide if a element needs to be shifted down to its child based on what the proper comparison should be. 
+
+QUICKSORT: 
+The wrapper function is given the Comparator to pass to the quicksort() that it calls, which passes the 
+Comparator to itself recursively, and to insertionSort() when the passes array is smaller than 10 elements. 
+median3() does not need this Comparator, as the median of something is always the middle no matter what kind of 
+sorting needs to be done - actually it does need a Comparator as it swaps within the vector. insertionSort() 
+uses the Comparator within its inner for loop set up as a way to check if adjacent elements within that 
+iteration are keeping the correct order. The line "if( i < j )" gave me trouble, as for a long time I didn't see 
+that this line should always have the less than operator, and should not be touched by the Comparator. This solved 
+many of my problems later on.
+
+MERGESORT:
+The wrapper function is given the Comparator to pass to the mergeSort() that it calls, which passes the 
+Comparator to itself recursively to continue to separate the vector into smaller vectors, and also the 
+merge() function. The merge() function uses the Comparator inside of its main while loop to check if the elements 
+at leftPos and rightPos keep the proper order as specified with the Comparator. 
+Also the || a[ leftPos ] == a[ rightPos ] is needed, as the algorithm called for a less than OR equal to 
+comparison between the two indices. 
+
+****** Step 3 ******
+
+At the beginning of testSortingWrapper(), I used the function call to srand(time(0)), which sets the seed for 
+the use of the rand() function, making it more random-based as it is based on current time. This helps RNG. 
+
+Within the if statements under // Generate the vector, GenerateRandomVector() is called if the desired type is 
+random, and GenerateSortedVector() is called for the other two types, either smallest to largest, or largest to 
+smallest. Small to large gets a parameter of true, while large to small gets the parameter of false. A vector 
+called copy is also made after this, and is set equal to the input vector so that the input vector can be 
+restored to its original state after going through each type of algorithm. 
+
+The rest of the function is just the same lines of code twice over, once for if the comparison_type is less, and 
+the other for greater. Each if statement goes through the three algorithms, Heapsort, Quicksort, and Mergesort. 
+Each segment for each algorithm states which algorithm is currently being run, and then saves the current time 
+within a variable. The current algorithm is called and run (heap, quick, or merge) and then the current time is 
+again saved. The algorithm is run with the less<int>{} class if the comparison_type is less, and with the 
+greater<int>{} class if the comparison_type is greater. The same is true with VerifyOrder(). With the two 
+saved start and end times, the Runtime is calculated and output, and then the order of the vector is checked 
+through calling VerifyOrder(), which outputs either 1 if true, or 0 if false. If another algorithm is to be 
+checked, then input vector is set back to copy, which is its saved original copy in the state it was made in.
+
+****** Question 2 ******
+
+MIDDLE PARTITIONING / QUICKSORT2():
+This follows the outline of the quicksort() code, as it is almost the same code. The only difference is that 
+median3() is not called, meaning the leftmost and rightmost values aren't placed in order according to the pivot. 
+This means that these two end values must be included in the while loops of the algorithm. The rightmost index is 
+switched with the pivot, meaning it is automatically included, and the leftmost index is included through changing 
+++i inside the while condition into i++ inside the actual loop. ++i would increment i first before accessing the 
+element, which would exclude the first element, at the leftmost index, using i++ fixes this, as it increments 
+after the access. 
+
+The pivot is chosen by computing the middle element which is always ( left + right ) / 2, then switches it into 
+the rightmost index for simplicity. The rest of the algorithm follows quicksort().
+
+FIRST PARTITIONING / QUICKSORT3():
+This function does the same as the first pararaph describing QuickSort2(), as median3() is still not called, so 
+the left and rightmost elements are not already partitioned. This algorithm always choses this leftmost element 
+as the pivot though, so for simplicity again, it is switched to the rightmost position, and pivot is set equal 
+to it. The rest of the algorithm follows quicksort().
+
+More about QuickSort2 and 3 below in the Problems section
+
+FINISHING TESTSORTINGWRAPPER(): 
+This question adds onto the if / else statements in the same fashion that Step 3 does. I followed the suggested 
+output exactly, so I created the separating title "Testing Quicksort Pivot Implementations" then called all 
+three separate quicksort algorithms, using less<int>{} if comparison_type == less, and greater<int>{} otherwise. 
+Each section outputs the algorithm name, and computes the start and end times for each call to its sort. It then  
+computes the duration, and verifies the order like the original three algorithms. If there's another algorithm 
+to run below the current one, the input vector is set back to its orignal state using the copy made.
+
+******Problems / Contains() / QuickSort2 and 3******
+I ran many different tests for each kind of input, and the sorted inputs (sorted_small_to_large / 
+sorted_large_to_small) did not output with any issues on less or greater. The random input, however, would lead 
+to all algorithms being verified as not in order, or would lead to a segmentation fault for the last two of the 
+six algorithms. This would only happen about 1 out of 11 runs though. Considering that the only difference 
+between these runs is the use of GenerateRandomVector(), I figured that something with the rand() function was 
+the issue. 
+
+I thought about how the GenerateRandomVector() could be giving the input vector copies of values, as random does 
+have the ability to give the same number out even when it seems like it shouldn't. I don't know a good way to 
+ensure that there are no duplicates within this giant randomized vector, so I used a brute force way of just 
+checking through every element in the vector before adding the proposed value from rand(). This is what the 
+Contains() function does. It is used within the while loop of GenerateRandomVector() to check the proposed 
+random while within the do{} brackets. If the value isn't a duplicate, it is pushed back on to the vector. 
+This seems to solve any problems with the random comparison_type, but it is a time costly effort, as it is 
+basically O(n^2) on a very large input. 
+
+I'm not sure how else to fix this issue. I'll keep thinking. It would be nice to know exactly how large of an 
+input my homework is supposed to handle. This could also just be an issue with my computer, so I'll be testing 
+through eniac for this issue as well.
+
+After messing around a lot, I realized one of my problems was that my VerifyOrder() function did not include 
+the case when adjacent elements are equivilant. I needed to include || a[i] == a[i + 1] in my code. I simplified 
+the GenerateRandomVector(), as I now know that was not actually causing any issues for me, just the duplicates 
+not being taken care of. The function just pushes back random values onto the vector. I left the Contains() 
+function code commented out, but still in the file just for documentation. 
+
+I also completely remade my QuickSort 2 and 3 functions, which now center around the partition function call.
+All the QuickSortx() function does now is receive the partition integer / index, then recursively call itself. 
+The partition function creates the pivot - either the center or the first element. It then switches the pivot 
+all the way to the right, and creates the division between elements that should be on the left or right side. 
+Then it restores the pivot, as always. I updated both QuickSort's so that the partition code is included in 
+the QuickSort code itself, so that time is saved - as a new function won't have to be called and put on the 
+stack. Quicksort was not a topic we covered in depth in CSCI 235, but Professor Maryash still gave us code 
+for it, which is what I based this new code off of. I left the old code commented out in QuickSort2 but 
+still visible for documentation. 
